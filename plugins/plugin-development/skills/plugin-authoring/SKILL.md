@@ -11,9 +11,30 @@ job is to handle that from a plain-language request.
 
 ## Locating the marketplace
 
-The marketplace root contains `.claude-plugin/marketplace.json`. If you're
-not already inside a clone of it, ask where the local clone lives before
-doing anything else — don't guess a path.
+The marketplace root contains `.claude-plugin/marketplace.json`. Before
+doing anything else:
+
+1. Check if the current directory (or a parent of it) is already a clone of
+   this marketplace — look for `.claude-plugin/marketplace.json` walking up
+   from the working directory.
+2. If it's not, ask if there's an existing local clone elsewhere on disk
+   whose path you should use.
+3. If there isn't one yet, this is likely someone's first time using this —
+   offer to clone it for them: ask for (or confirm, if you already know it)
+   the repo URL, then run `git clone <url>` into a sensible default location
+   (e.g. `~/dev/<repo-name>` or wherever they'd prefer) and use that as the
+   marketplace root from here on. Don't guess a path silently either way —
+   confirm where it landed.
+
+This means someone should be able to say "create a new plugin for X" as
+their very first message, with no prior manual `git clone`, and still get a
+working result — cloning is something you do for them, not something they
+need to already know to do.
+
+Note: pushing later (via `/publish-plugin`) still requires their git host
+auth to already be set up (SSH key or access token) — that's a one-time
+account-level step outside anything a clone can solve, and isn't something
+to attempt on their behalf.
 
 ## Flow: "add this skill/command/agent to the marketplace"
 
