@@ -1,0 +1,21 @@
+{
+    "name": "team-plugin-marketplace",
+    "owner": {
+      "name": "Your Team",
+      "email": "team@org.com"
+    },
+    "metadata": {
+      "description": "A private team plugin marketplace for claude code",
+      "version": "0.1.0"
+    },
+    "plugins": [
+      {
+        "name": "plugin-development",
+        "source": "./plugins/plugin-development",
+        "description": "Scaffold, validate, and publish plugins via natural language instead of memorizing commands.",
+        "version": "0.1.0",
+        "category": "internal",
+        "tags": ["tooling", "validation", "plugins"]
+      }
+    ]
+  }

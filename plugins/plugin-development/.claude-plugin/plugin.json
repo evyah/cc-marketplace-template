@@ -1,0 +1,10 @@
+{
+    "name": "plugin-development",
+    "version": "0.1.0",
+    "description": "Scaffold, validate, and publish marketplace plugins",
+    "author": {
+      "name": "Claude",
+      "email": "claude@org.com"
+    },
+    "keywords": ["tooling", "validation", "scaffolding", "plugins"]
+  }
