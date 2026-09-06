@@ -63,8 +63,8 @@ those directly. If they're looking for something specific, check `tags` and
 
 ## Flow: "validate" / "check everything is good"
 
-Use the `/validate` command's fix loop (see
-`plugins/plugin-development/commands/validate.md` for the full auto-fix vs
+Use the `/validate-plugin` command's fix loop (see
+`plugins/plugin-development/commands/validate-plugin.md` for the full auto-fix vs
 ask-first breakdown by error code): run the script with `--json`, auto-fix
 what's safe, ask about anything that needs a human decision, and repeat
 until clean.
@@ -79,7 +79,7 @@ are explicitly flagged as drafts and deserve a second look here.
 
 ## Flow: "publish" / "push the marketplace"
 
-Use `/publish` — see `plugins/plugin-development/commands/publish.md`. Don't
+Use `/publish-plugin` — see `plugins/plugin-development/commands/publish-plugin.md`. Don't
 push as a side effect of anything else; it's always an explicit step.
 
 ## General rules
