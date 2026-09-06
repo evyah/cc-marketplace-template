@@ -210,10 +210,48 @@ for entry in plugin_entries:
                         f'{rel(cmd_file)}: missing "description" in frontmatter',
                     )
 
-        # ---- 5. MCP config, if present, must be valid JSON ----
+        # ---- 5. MCP config, if present, must be valid JSON AND structurally correct ----
         mcp_path = plugin_dir / ".mcp.json"
         if mcp_path.exists():
-            read_json(mcp_path, rel(mcp_path), "MCP")
+            mcp_config = read_json(mcp_path, rel(mcp_path), "MCP")
+            if mcp_config is not None:
+                servers = mcp_config.get("mcpServers")
+                if servers is None:
+                    add_error(
+                        "MCP_MISSING_MCPSERVERS_KEY",
+                        mcp_path,
+                        f'{rel(mcp_path)}: missing top-level "mcpServers" key — a server '
+                        f'object with no wrapper is silently ignored by Claude Code',
+                    )
+                elif not isinstance(servers, dict) or not servers:
+                    add_error(
+                        "MCP_EMPTY_MCPSERVERS",
+                        mcp_path,
+                        f'{rel(mcp_path)}: "mcpServers" is empty or not an object',
+                    )
+                else:
+                    for server_name, server_cfg in servers.items():
+                        s_ctx = f'{rel(mcp_path)} > mcpServers.{server_name}'
+                        if not isinstance(server_cfg, dict):
+                            add_error("MCP_SERVER_INVALID", mcp_path, f"{s_ctx}: must be an object")
+                            continue
+                        has_command = "command" in server_cfg
+                        has_url = "url" in server_cfg
+                        if not has_command and not has_url:
+                            add_error(
+                                "MCP_SERVER_MISSING_TRANSPORT",
+                                mcp_path,
+                                f'{s_ctx}: needs either "command" (local process) or '
+                                f'"url" (remote server)',
+                            )
+                        if has_url and "type" not in server_cfg:
+                            add_error(
+                                "MCP_URL_MISSING_TYPE",
+                                mcp_path,
+                                f'{s_ctx}: has "url" but no "type" — Claude Code treats this '
+                                f'as a broken stdio server and silently skips it at startup; '
+                                f'add "type": "http" (or "sse"/"ws")',
+                            )
 
 
 # ---- 6. Regenerate docs/CATALOG.md ----

@@ -63,13 +63,53 @@ Or run the commands directly if you'd rather: `/validate-plugin`, `/publish-plug
 
 `docs/CATALOG.md` gets generated the first time you run the validator — not committed yet since nothing's been validated in this repo.
 
+## How validation works
+
+**It's not automatic.** There's no CI and no git hook — nothing runs in the
+background when a file changes. Validation only happens when something
+explicitly triggers it:
+
+| Trigger | What happens |
+| --- | --- |
+| `python3 plugins/plugin-development/scripts/validate.py` | Run it yourself, anytime, from the repo root |
+| `/validate-plugin` in Claude Code | Same checks, but Claude auto-fixes what's safe (missing fields, empty entries, drafts a missing description) and only asks you about things that need a real decision |
+| Plain language — *"validate the marketplace"* | Triggers the `plugin-authoring` skill, which does the same thing as `/validate-plugin` |
+| `/publish-plugin` | Runs validation **first**, automatically, before anything gets committed — so nothing broken can get pushed this way, but it's still only running because you ran `/publish-plugin`, not on its own |
+
+### What it checks
+
+- `marketplace.json` is valid JSON with `name`, `owner`, `plugins`
+- Every plugin entry has `name` and `source`; warns if `description` or `owner` is missing
+- No two plugins share a `name`
+- Every `source` path actually exists
+- Each plugin's own `plugin.json` is valid JSON with `name`, `version`, `description`
+- Every `SKILL.md` has `name` + `description` in its frontmatter (and warns if the description is too short to trigger reliably)
+- Every command file has a `description` in its frontmatter
+- If a plugin has a `.mcp.json`, it's checked structurally, not just for valid JSON — see below
+
+### What a plugin must have, minimum
+
+- `plugins/<name>/.claude-plugin/plugin.json` with `name`, `version`, `description`
+- A matching entry in the root `marketplace.json` (`name`, `source` required; `description`/`owner` strongly recommended)
+- At least one of `skills/`, `commands/`, `agents/`, `hooks/`, `.mcp.json` — a plugin with none of these is valid JSON but doesn't actually do anything
+
+### MCP servers specifically
+
+A `.mcp.json` needs a top-level `"mcpServers"` key wrapping each server —
+a bare server object with no wrapper is silently ignored by Claude Code, not
+just invalid. Each server needs either `"command"` (local process) or
+`"url"` (remote); if it's `"url"`, it also needs `"type"` (`"http"`, `"sse"`,
+or `"ws"`) — a `url` with no `type` is a documented Claude Code failure mode
+where the server gets treated as broken and silently skipped at startup,
+not a style nitpick.
+
 ## Validate locally
 
 ```bash
 python3 plugins/plugin-development/scripts/validate.py
 ```
 
-Checks the catalog and every plugin manifest for missing fields, duplicate names, broken paths, missing skill/command descriptions. No dependencies — just Python.
+No dependencies — just Python (stdlib only).
 
 ## Adding a plugin
 

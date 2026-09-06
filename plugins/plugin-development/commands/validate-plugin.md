@@ -47,6 +47,8 @@ After the loop, report clearly, in two groups:
 | `PLUGIN_SOURCE_NOT_FOUND` | Could be a typo or a genuinely deleted/moved folder — don't guess which. |
 | `PLUGIN_MISSING_OWNER` | Only a human knows who actually owns this. |
 | `SKILL_DESCRIPTION_SHORT` (warning) | Improving a vague description is a judgment call about what the skill should trigger on — surface it, don't silently rewrite someone's wording. |
+| `MCP_MISSING_MCPSERVERS_KEY` / `MCP_SERVER_MISSING_TRANSPORT` | The person knows whether this is meant to be a local process or a remote URL — don't invent a command or endpoint. |
+| `MCP_URL_MISSING_TYPE` | Usually a one-word fix (`"type": "http"` is the common case), but confirm rather than guess — `sse`/`ws` are also valid and only the person knows which transport the server actually speaks. |
 
 ## Rules
 

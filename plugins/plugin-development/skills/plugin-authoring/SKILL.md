@@ -50,12 +50,12 @@ to attempt on their behalf.
    - Agent → `plugins/<name>/agents/<agent-name>.md`
    - Hook → `plugins/<name>/hooks/hooks.json` (merge into existing file if present)
    - MCP server → `plugins/<name>/.mcp.json` (merge into existing file if present)
-3. Make sure it has the required frontmatter/shape — see
-   `plugins/example-plugin/` for the reference format of each type. If given
-   rough notes instead of a finished file, write it properly: a clear,
-   specific `description` (this is what Claude uses to decide whether to
-   load the skill later — vague descriptions won't trigger reliably) and
-   concrete instructions, not just a copy of their notes.
+3. Make sure it has the required frontmatter/shape (see "Reference shapes"
+   below). If given rough notes instead of a finished file, write it
+   properly: a clear, specific `description` (this is what Claude uses to
+   decide whether to load the skill later — vague descriptions won't
+   trigger reliably) and concrete instructions, not just a copy of their
+   notes.
 4. Bump `version` in that plugin's `.claude-plugin/plugin.json` (patch bump
    for additions, unless told otherwise).
 5. Run the validator (see below) before proposing to commit anything.
@@ -65,16 +65,89 @@ to attempt on their behalf.
 
 ## Flow: "create a new plugin for X"
 
-1. Copy `plugins/example-plugin/` to `plugins/<x>/` (kebab-case name).
-2. Fill in `.claude-plugin/plugin.json`: real name, version `0.1.0`,
-   description, author = the requester.
-3. Add an entry to the root `.claude-plugin/marketplace.json` `plugins`
+1. Create `plugins/<x>/` (kebab-case name) with a `.claude-plugin/plugin.json`
+   — real name, version `0.1.0`, description, author = the requester — plus
+   whichever of `skills/`, `commands/`, `agents/`, `hooks/`, `.mcp.json` the
+   request actually needs. Generate these directly per "Reference shapes"
+   below — don't look for a template folder to copy, there isn't one.
+2. Add an entry to the root `.claude-plugin/marketplace.json` `plugins`
    array: `name`, `source: "./plugins/<x>"`, `description`,
    `version: "0.1.0"`, `category` (reuse an existing one where it fits —
    ask if unclear), `tags`, `owner`.
-4. Remove the placeholder `example-skill`/`example-command` unless they want
-   to keep it as a starting point.
-5. Run the validator, summarize, commit/push if confirmed.
+3. Run the validator, summarize, commit/push if confirmed.
+
+## Reference shapes
+
+**`plugin.json`** (`plugins/<name>/.claude-plugin/plugin.json`):
+```json
+{
+  "name": "plugin-name",
+  "version": "0.1.0",
+  "description": "One line — shown when browsing.",
+  "author": { "name": "...", "email": "..." }
+}
+```
+
+**`SKILL.md`** (`plugins/<name>/skills/<skill-name>/SKILL.md`):
+```markdown
+---
+name: skill-name
+description: Specific — what it does AND when to use it. This is the only
+  thing used to decide whether to load it, so be concrete, not vague.
+---
+
+# Skill Title
+
+Instructions for what Claude should do when this skill is active.
+```
+
+**Command** (`plugins/<name>/commands/<command-name>.md`):
+```markdown
+---
+description: One line shown when browsing available commands.
+---
+
+# Command Title
+
+Deterministic steps — only use a command instead of a skill for things that
+should run identically every time.
+```
+
+**`.mcp.json`** (`plugins/<name>/.mcp.json`, plugin root):
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/servers/some-server",
+      "args": ["--config", "${CLAUDE_PLUGIN_ROOT}/config.json"],
+      "env": { "API_KEY": "${API_KEY}" }
+    }
+  }
+}
+```
+Must be wrapped in a top-level `"mcpServers"` key — a bare server object at
+the top level is silently ignored. `${CLAUDE_PLUGIN_ROOT}` resolves to the
+plugin's own install path, useful for bundling a server binary/script inside
+the plugin itself.
+
+For a remote server instead of a local process, use `"type"` + `"url"`
+instead of `"command"`:
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "type": "http",
+      "url": "https://your-server.example.com/mcp"
+    }
+  }
+}
+```
+`"type"` is required whenever `"url"` is present (`"http"`, `"sse"`, or
+`"ws"`) — a `url` with no `type` is treated as a broken stdio server and
+silently skipped at session start, not just a style preference.
+
+Only use these three shapes exactly as-is; don't invent extra frontmatter
+fields.
 
 ## Flow: "what plugins/skills exist" / browsing
 
